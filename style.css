@@ -1,0 +1,48 @@
+body {
+    background: #2a999b;
+    background: linear-gradient(90deg, rgba(42, 153, 155, 1) 0%, rgba(92, 191, 158, 1) 53%, rgba(103, 207, 148, 1) 100%);
+    height: 100vh;
+    overflow-y: hidden;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.player {
+    margin-top: 12px;
+    background-color: rgba(240, 248, 255, 0.9);
+    padding: 16px 28px;
+    border-radius: 28px;
+    backdrop-filter: blur(4px);
+    box-shadow: rgba(0, 0, 0, 0.4) 4px 8px 20px -8px;
+}
+
+.game-grid {
+    margin-top: 20vh;
+    display: grid;
+    grid-template-columns: auto auto auto;
+    gap: 8px;
+}
+
+.cell {
+    width: 120px;
+    height: 120px;
+    background-color: whitesmoke;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.cell-symbol {
+    font-size: 60px;
+    color: rgb(53, 53, 53);
+}
+
+.winning-cell-symbol {
+    font-size: 60px;
+    color: rgb(231, 94, 30);
+}
