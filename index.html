@@ -4,14 +4,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Tic Tac Toe</title>
     <link rel="stylesheet" href="./style.css">
 </head>
 
 <body>
-    <div class="container">
+
+    <div class="container" id="homeScreen">
+        <div class="title-card">
+            <h1 class="game-title">Tic Tac Toe</h1>
+            <p class="game-desc">Play with your friend online!</p>
+        </div>
+
+        <div class="invite-card">
+            <form class="invite-form hidden" id="inviteForm" onsubmit="event.preventDefault()">
+                <input type="text" id="playerNameX" placeholder="Your name" class="player-name">
+                <button type="submit" class="invite-btn" id="btnInvite">Invite</button>
+            </form>
+
+            <form class="join-form hidden" id="joinForm" onsubmit="event.preventDefault()">
+                <input type="text" id="playerNameO" placeholder="Your name" class="player-name">
+                <button type="submit" class="join-btn" id="btnJoin">Join</button>
+            </form>
+
+            <div class="link-details hidden" id="linkDetails">
+                <input type="text" id="link" class="link" disabled>
+                <button type="submit" class="copy-btn" id="btnCopy">Copy</button>
+            </div>
+
+            <div class="invite-details">
+                <span id="invitedBy"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="container hidden" id="gameScreen">
         <span class="player" id="player"></span>
-        <div class="game-grid">
+        <div class="game-grid" id="gameGrid">
             <div class="cell" id="cell0"></div>
             <div class="cell" id="cell1"></div>
             <div class="cell" id="cell2"></div>
@@ -24,6 +53,11 @@
         </div>
     </div>
 
+    <div class="container hidden" id="gameOverScreen">
+        <p class="winner-msg">Winner is <span class="winner-name" id="winnerName"></span>!</p>
+    </div>
+
+    <script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js"></script>
     <script src="./index.js"></script>
 </body>
 

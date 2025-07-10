@@ -1,15 +1,103 @@
 body {
-    background: #2a999b;
     background: linear-gradient(90deg, rgba(42, 153, 155, 1) 0%, rgba(92, 191, 158, 1) 53%, rgba(103, 207, 148, 1) 100%);
     height: 100vh;
     overflow-y: hidden;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .container {
     display: flex;
     flex-direction: column;
     align-items: center;
+}
+
+.title-card {
+    margin-top: 24vh;
+    text-align: center;
+}
+
+.game-title {
+    color: aliceblue;
+    font-size: 60px;
+    font-weight: bold;
+    margin: 0;
+}
+
+.game-desc {
+    color: whitesmoke;
+}
+
+.invite-card {
+    margin-top: 40px;
+    text-align: center;
+}
+
+.player-name {
+    padding: 8px;
+    border: none;
+    border-radius: 4px;
+    background-color: whitesmoke;
+}
+
+.player-name:focus {
+    outline: none;
+}
+
+.invite-btn,
+.join-btn {
+    border: none;
+    padding: 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    background-color: whitesmoke;
+}
+
+.invite-btn:hover,
+.join-btn:hover {
+    background-color: rgb(235, 235, 235);
+}
+
+.link-details {
+    margin-top: 44px;
+}
+
+.link {
+    padding: 8px;
+    border: none;
+    border-radius: 4px;
+    background: none;
+    color: #141414;
+    width: 520px;
+}
+
+.link:focus {
+    outline: none;
+}
+
+.copy-btn {
+    padding: 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    background: none;
+    border: 1px #141414 solid;
+    color: #141414;
+}
+
+.copy-btn:hover {
+    background: #141414;
+    color: whitesmoke;
+}
+
+.invite-details {
+    margin-top: 44px;
+}
+
+.invite-details span {
+    color: whitesmoke;
+}
+
+.hidden {
+    display: none;
 }
 
 .player {
@@ -44,5 +132,16 @@ body {
 
 .winning-cell-symbol {
     font-size: 60px;
-    color: rgb(231, 94, 30);
+    color: #e75e1e;
+}
+
+.winner-msg {
+    margin-top: 40vh;
+    color: whitesmoke;
+    font-size: 40px;
+    font-weight: bold;
+}
+
+.winner-name {
+    text-decoration: underline;
 }
