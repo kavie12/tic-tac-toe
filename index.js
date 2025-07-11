@@ -1,6 +1,3 @@
-// Important Note
-// X acts like the host and O is the other peer
-
 const playerIndicator = document.getElementById("player");
 const homeScreen = document.getElementById("homeScreen");
 const gameScreen = document.getElementById("gameScreen");
@@ -16,7 +13,7 @@ const inviteForm = document.getElementById("inviteForm");
 const joinForm = document.getElementById("joinForm");
 const btnJoin = document.getElementById("btnJoin");
 const invitedByTxt = document.getElementById("invitedBy");
-const winnerNameTxt = document.getElementById("winnerName");
+const winnerMsg = document.getElementById("winnerMsg");
 
 
 const PeerDataType = Object.freeze({
@@ -157,6 +154,7 @@ class GameUiState {
         this.currentPlayerId = PlayerId.PLAYER_X;
         
         this.isWin = false;
+        this.isDraw = false;
         this.winner = null;
         this.winningLine = [];
 
@@ -194,6 +192,7 @@ class GameUiState {
         return {
             currentPlayerId: this.currentPlayerId,
             isWin: this.isWin,
+            isDraw: this.isDraw,
             winner: this.winner,
             winningLine: this.winningLine,
             moves: {
@@ -206,6 +205,7 @@ class GameUiState {
     updateState(state) {
         this.currentPlayerId = state.currentPlayerId;
         this.isWin = state.isWin;
+        this.isDraw = state.isDraw;
         this.winner = state.winner;
         this.winningLine = state.winningLine;
         this.currentPlayerId = state.currentPlayerId;
@@ -305,10 +305,10 @@ function setCellClickHandlers(appState, gameUiState, peerConnection) {
 
             clickedCell.draw(gameUiState.getCurrentPlayer());
     
-            // Hanlde win
-            checkWin(gameUiState);
-            if (gameUiState.isWin) {
-                handleWin(gameUiState);
+            // Hanlde game over
+            checkGameOver(gameUiState);
+            if (gameUiState.isWin || gameUiState.isDraw) {
+                handleGameOver(gameUiState);
 
                 // Sync with the other peer
                 peerConnection.sendData({
@@ -350,8 +350,8 @@ function refreshUpdatedState(gameUiState) {
         gameUiState.cells[move].draw(gameUiState.getPlayerById(PlayerId.PLAYER_O));
     }
 
-    if (gameUiState.isWin) {
-        handleWin(gameUiState);
+    if (gameUiState.isWin || gameUiState.isDraw) {
+        handleGameOver(gameUiState);
         return;
     }
 
@@ -369,7 +369,7 @@ const winningLines = [
     [2, 4, 6]
 ];
 
-function checkWin(gameUiState) {
+function checkGameOver(gameUiState) {
     for (const [a, b, c] of winningLines) {
         const playerMoves = gameUiState.moves[gameUiState.currentPlayerId];
         if (playerMoves.has(a) && playerMoves.has(b) && playerMoves.has(c)) {
@@ -379,13 +379,22 @@ function checkWin(gameUiState) {
             return;
         }
     }
+    
+    if (gameUiState.cells.length == gameUiState.moves[PlayerId.PLAYER_X].size + gameUiState.moves[PlayerId.PLAYER_O].size) {
+        gameUiState.isDraw = true;
+    }
 }
 
-function handleWin(gameUiState) {
+function handleGameOver(gameUiState) {
     removeCellClickHandlers(gameUiState.cells);
-    highlightWinningLine(gameUiState.getWinningLine());
 
-    winnerNameTxt.innerHTML = gameUiState.getWinner().playerName;
+    if (gameUiState.isWin) {
+        highlightWinningLine(gameUiState.getWinningLine());
+        winnerMsg.innerHTML = "Winner is " + gameUiState.getWinner().playerName;
+    } else if (gameUiState.isDraw) {
+        winnerMsg.innerHTML = "Draw!";
+    }
+
     setTimeout(() => {
         changeScreen(Screens.GAME_OVER_SCREEN);
     }, 2000);
