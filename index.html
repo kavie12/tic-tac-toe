@@ -40,24 +40,17 @@
 
     <div class="container hidden" id="gameScreen">
         <span class="player" id="player"></span>
-        <div class="game-grid" id="gameGrid">
-            <div class="cell" id="cell0"></div>
-            <div class="cell" id="cell1"></div>
-            <div class="cell" id="cell2"></div>
-            <div class="cell" id="cell3"></div>
-            <div class="cell" id="cell4"></div>
-            <div class="cell" id="cell5"></div>
-            <div class="cell" id="cell6"></div>
-            <div class="cell" id="cell7"></div>
-            <div class="cell" id="cell8"></div>
-        </div>
+        <div class="game-grid" id="gameGrid"></div>
     </div>
 
     <div class="container hidden" id="gameOverScreen">
-        <p class="winner-msg" id="winnerMsg"></p>
+        <p class="game-over-msg" id="gameOverMsg"></p>
     </div>
 
     <script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js"></script>
+    <script src="./utils/PeerConnection.js"></script>
+    <script src="./entities/Player.js"></script>
+    <script src="./entities/Cell.js"></script>
     <script src="./index.js"></script>
 </body>
 

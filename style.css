@@ -135,7 +135,7 @@ body {
     color: #e75e1e;
 }
 
-.winner-msg {
+.game-over-msg {
     margin-top: 40vh;
     color: whitesmoke;
     font-size: 40px;

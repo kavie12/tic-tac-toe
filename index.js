@@ -13,132 +13,7 @@ const inviteForm = document.getElementById("inviteForm");
 const joinForm = document.getElementById("joinForm");
 const btnJoin = document.getElementById("btnJoin");
 const invitedByTxt = document.getElementById("invitedBy");
-const winnerMsg = document.getElementById("winnerMsg");
-
-
-const PeerDataType = Object.freeze({
-    REG_PLAYER_O: 0,
-    JOIN_O: 1,
-    GAME_UI_STATE: 2
-});
-
-class PeerConnection {
-    constructor() {
-        this.peer = new Peer();
-        this.conn = null;
-
-        this.peer.on("connection", conn => {
-            this.conn = conn;
-            this.receiveData();
-        });
-    }
-
-    getInviteLink(playerName) {
-        return new Promise(resolve => {
-            if (this.peer.id) {
-                resolve(`${window.location.origin}?name=${playerName}&id=${this.peer.id}`);
-            } else {
-                this.peer.on("open", id => {
-                    resolve(`${window.location.origin}?name=${playerName}&id=${id}`);
-                });
-            }
-        });
-    }
-
-    connect(id) {
-        this.conn = this.peer.connect(id);
-        this.receiveData();
-    }
-
-    receiveData() {
-        this.conn.on("open", () => {
-            this.conn.on("data", data => {
-
-                // Handle data according to the type of data
-                
-                if (data.type === PeerDataType.REG_PLAYER_O) {
-
-                    if (players.length < 2) {
-                        players.push(new Player(PlayerId.PLAYER_O, data.data, "O"));
-                    }
-
-                } else if (data.type === PeerDataType.JOIN_O) {
-
-                    changeScreen(Screens.GAME_SCREEN);
-                    initGame(players, cells);
-
-                } else if (data.type === PeerDataType.GAME_UI_STATE) {
-                    if (gameUiState) {
-                        gameUiState.updateState(data.data);
-                        refreshUpdatedState(gameUiState);
-                    }
-
-                }
-
-            });
-        });
-    }
-
-    sendData(data) {
-        if (this.conn && this.conn.open) {
-            this.conn.send(data);
-        } else {
-            this.conn.on("open", () => {
-                this.conn.send(data);
-            });
-        }
-    }
-}
-
-
-// ENTITIES
-
-class Player {
-    constructor(playerId, playerName, playerSymbol) {
-        this.playerId = playerId;
-        this.playerName = playerName;
-        this.playerSymbolElement = document.createElement("span");
-        this.playerSymbolElement.classList.add("cell-symbol");
-        this.playerSymbolElement.appendChild(document.createTextNode(playerSymbol));
-    }
-
-    getSymbolElement() {
-        return this.playerSymbolElement.cloneNode(true);
-    }
-};
-
-class Cell {
-    constructor(cellIndex, element) {
-        this.cellIndex = cellIndex;
-        this.element = element;
-        this.isChecked = false;
-        this.playerId = null;
-        this.clickHandler = null;
-    }
-
-    draw(player) {
-        if (!this.isChecked) {
-            this.element.appendChild(player.getSymbolElement());
-            this.isChecked = true;
-            this.playerId = player.playerId;
-        }
-    }
-
-    setClickHandler(handler) {
-        this.clickHandler = () => {
-            if (!this.isChecked) {
-                handler(this);
-            }
-        }
-        this.element.addEventListener("click", this.clickHandler);
-    }
-
-    removeClickHandler() {
-        if (this.clickHandler) {
-            this.element.removeEventListener("click", this.clickHandler);
-        }
-    }
-};
+const gameOverMsg = document.getElementById("gameOverMsg");
 
 class AppState {
     constructor(playerId) {
@@ -250,7 +125,38 @@ function changeScreen(screen) {
 }
 
 
-// DATA
+// Peer data handler
+
+const PeerDataType = Object.freeze({
+    REG_PLAYER_O: 0,
+    JOIN_O: 1,
+    GAME_UI_STATE: 2
+});
+
+function receiveDataHandler(data) {           
+    if (data.type === PeerDataType.REG_PLAYER_O) {
+
+        if (players.length < 2) {
+            players.push(new Player(PlayerId.PLAYER_O, data.data, "O"));
+        }
+
+    } else if (data.type === PeerDataType.JOIN_O) {
+
+        changeScreen(Screens.GAME_SCREEN);
+        initGame(players, cells);
+
+    } else if (data.type === PeerDataType.GAME_UI_STATE) {
+
+        if (gameUiState) {
+            gameUiState.updateState(data.data);
+            refreshUpdatedState(gameUiState);
+        }
+
+    }
+}
+
+
+// Data
 
 const PlayerId = Object.freeze({
     PLAYER_X: 0,
@@ -258,13 +164,10 @@ const PlayerId = Object.freeze({
 });
 const players = [];
 
-const cellIds = [
-    "cell0", "cell1", "cell2",
-    "cell3", "cell4", "cell5",
-    "cell6", "cell7", "cell8"
-];
-const cells = cellIds.map((id, cellIndex) => new Cell(cellIndex, document.getElementById(id)));
-
+const cells = [];
+for (let i = 0; i < 9; i++) {
+    cells.push(new Cell(i));
+}
 
 let peerConnection = null;
 let appState = null;
@@ -272,21 +175,35 @@ let gameUiState = null;
 
 
 // ENTRY POINT
-connect();
+main();
 
-function connect() {
-    peerConnection = new PeerConnection();
+function main() {
+    peerConnection = new PeerConnection(receiveDataHandler);
 
+    // Display the relavant form (Invite / Join)
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.has("name") && urlParams.has("id")) {
-        handleInvitationLink(urlParams.get("name"));
-        handleJoin(urlParams.get("name"), urlParams.get("id"), peerConnection);
+        joinForm.classList.remove("hidden");
+        invitedByTxt.innerHTML = `Invited by ${urlParams.get("name")}`;
     } else {
-        handleInvite(peerConnection);
+        inviteForm.classList.remove("hidden");
     }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        // Handle Join button
+        btnJoin.addEventListener("click", () => handleJoin(urlParams.get("name"), urlParams.get("id"), peerConnection));
+    
+        // Handle Invite button
+        btnInvite.addEventListener("click", () => handleInvite(peerConnection));
+
+        // Handle Copy button
+        btnCopy.addEventListener("click", () => navigator.clipboard.writeText(linkTxt.value));
+    });
 }
 
 function initGame(players, cells) {
+    gameGrid.append(...cells.map(cell => cell.element));
+
     gameUiState = new GameUiState(players, cells);
     setIndicator(gameUiState.getCurrentPlayer().playerName);
     setCellClickHandlers(appState, gameUiState, peerConnection);
@@ -332,10 +249,6 @@ function setCellClickHandlers(appState, gameUiState, peerConnection) {
     });
 }
 
-function removeCellClickHandlers(cells) {
-    cells.forEach(cell => cell.removeClickHandler());
-}
-
 function setIndicator(playerName) {
     playerIndicator.innerHTML = playerName;
 }
@@ -343,11 +256,14 @@ function setIndicator(playerName) {
 function refreshUpdatedState(gameUiState) {
 
     // Draw moves
-    for (const move of gameUiState.moves[PlayerId.PLAYER_X]) {
-        gameUiState.cells[move].draw(gameUiState.getPlayerById(PlayerId.PLAYER_X));
-    }
-    for (const move of gameUiState.moves[PlayerId.PLAYER_O]) {
-        gameUiState.cells[move].draw(gameUiState.getPlayerById(PlayerId.PLAYER_O));
+    if (appState.playerId === PlayerId.PLAYER_X) {
+        for (const move of gameUiState.moves[PlayerId.PLAYER_O]) {
+            gameUiState.cells[move].draw(gameUiState.getPlayerById(PlayerId.PLAYER_O));
+        }
+    } else {
+        for (const move of gameUiState.moves[PlayerId.PLAYER_X]) {
+            gameUiState.cells[move].draw(gameUiState.getPlayerById(PlayerId.PLAYER_X));
+        }
     }
 
     if (gameUiState.isWin || gameUiState.isDraw) {
@@ -370,6 +286,7 @@ const winningLines = [
 ];
 
 function checkGameOver(gameUiState) {
+    // Check win
     for (const [a, b, c] of winningLines) {
         const playerMoves = gameUiState.moves[gameUiState.currentPlayerId];
         if (playerMoves.has(a) && playerMoves.has(b) && playerMoves.has(c)) {
@@ -380,19 +297,24 @@ function checkGameOver(gameUiState) {
         }
     }
     
+    // Check draw
     if (gameUiState.cells.length == gameUiState.moves[PlayerId.PLAYER_X].size + gameUiState.moves[PlayerId.PLAYER_O].size) {
         gameUiState.isDraw = true;
     }
 }
 
 function handleGameOver(gameUiState) {
-    removeCellClickHandlers(gameUiState.cells);
+    cells.forEach(cell => cell.removeClickHandler());
 
     if (gameUiState.isWin) {
-        highlightWinningLine(gameUiState.getWinningLine());
-        winnerMsg.innerHTML = "Winner is " + gameUiState.getWinner().playerName;
+        // Highlight winning line
+        gameUiState.getWinningLine().forEach(cell => {
+            cell.element.firstElementChild.classList.add("winning-cell-symbol");
+        });
+        
+        gameOverMsg.innerHTML = "Winner is " + gameUiState.getWinner().playerName;
     } else if (gameUiState.isDraw) {
-        winnerMsg.innerHTML = "Draw!";
+        gameOverMsg.innerHTML = "Draw!";
     }
 
     setTimeout(() => {
@@ -400,70 +322,49 @@ function handleGameOver(gameUiState) {
     }, 2000);
 }
 
-function highlightWinningLine(winningLine) {
-    winningLine.forEach(cell => {
-        cell.element.firstElementChild.classList.add("winning-cell-symbol");
-    });
-}
-
 function handleInvite(peerConnection) {
-    inviteForm.classList.remove("hidden");
+    const playerName = playerNameXInput.value;
+    if (!playerName) {
+        alert("Enter player name");
+        return;
+    }
+    appState = new AppState(PlayerId.PLAYER_X);
+    players.push(new Player(PlayerId.PLAYER_X, playerName, "X"));
 
-    btnInvite.addEventListener("click", () => {
-        const playerName = playerNameXInput.value;
-        if (!playerName) {
-            alert("Enter player name");
-            return;
-        }
-        appState = new AppState(PlayerId.PLAYER_X);
-        players.push(new Player(PlayerId.PLAYER_X, playerName, "X"));
-
-        peerConnection.getInviteLink(playerName).then(link => {
-            linkTxt.value = link;
-        });
-        linkDetails.classList.remove("hidden");
+    peerConnection.getInviteLink(playerName).then(link => {
+        linkTxt.value = link;
     });
-
-    btnCopy.addEventListener("click", () => {
-        navigator.clipboard.writeText(linkTxt.value);
-    });
-}
-
-function handleInvitationLink(name) {
-    joinForm.classList.remove("hidden");
-    invitedByTxt.innerHTML = `Invited by ${name}`;
+    linkDetails.classList.remove("hidden");
 }
 
 function handleJoin(playerNameX, id, peerConnection) {
-    btnJoin.addEventListener("click", () => {
-        const playerNameO = playerNameOInput.value;
-        if (!playerNameO) {
-            alert("Enter player name");
-            return;
-        }
-        appState = new AppState(PlayerId.PLAYER_O);
+    const playerNameO = playerNameOInput.value;
+    if (!playerNameO) {
+        alert("Enter player name");
+        return;
+    }
+    appState = new AppState(PlayerId.PLAYER_O);
 
-        // Register both players at PLAYER_O peer
-        players.push(new Player(PlayerId.PLAYER_X, playerNameX, "X"));
-        players.push(new Player(PlayerId.PLAYER_O, playerNameO, "O"));
+    // Register both players at PLAYER_O peer
+    players.push(new Player(PlayerId.PLAYER_X, playerNameX, "X"));
+    players.push(new Player(PlayerId.PLAYER_O, playerNameO, "O"));
 
-        // Connect with PLAYER_X
-        peerConnection.connect(id);
+    // Connect with PLAYER_X
+    peerConnection.connect(id);
 
-        // Send PLAYER_O details
-        peerConnection.sendData({
-            type: PeerDataType.REG_PLAYER_O,
-            data: playerNameO
-        });
-
-        // Send join message
-        peerConnection.sendData({
-            type: PeerDataType.JOIN_O,
-            data: null
-        });
-
-        // Show the game
-        changeScreen(Screens.GAME_SCREEN);
-        initGame(players, cells);
+    // Send PLAYER_O details
+    peerConnection.sendData({
+        type: PeerDataType.REG_PLAYER_O,
+        data: playerNameO
     });
+
+    // Send join message
+    peerConnection.sendData({
+        type: PeerDataType.JOIN_O,
+        data: null
+    });
+
+    // Show the game
+    changeScreen(Screens.GAME_SCREEN);
+    initGame(players, cells);
 }
