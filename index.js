@@ -15,12 +15,6 @@ const btnJoin = document.getElementById("btnJoin");
 const invitedByTxt = document.getElementById("invitedBy");
 const gameOverMsg = document.getElementById("gameOverMsg");
 
-class AppState {
-    constructor(playerId) {
-        this.playerId = playerId;
-    }
-}
-
 class GameUiState {
     constructor(players, cells) {
         this.players = players;
@@ -133,7 +127,7 @@ const PeerDataType = Object.freeze({
     GAME_UI_STATE: 2
 });
 
-function receiveDataHandler(data) {           
+function receiveDataHandler(playerId, data) {    
     if (data.type === PeerDataType.REG_PLAYER_O) {
 
         if (players.length < 2) {
@@ -149,7 +143,7 @@ function receiveDataHandler(data) {
 
         if (gameUiState) {
             gameUiState.updateState(data.data);
-            refreshUpdatedState(gameUiState);
+            refreshUpdatedState(playerId, gameUiState);
         }
 
     }
@@ -170,7 +164,6 @@ for (let i = 0; i < 9; i++) {
 }
 
 let peerConnection = null;
-let appState = null;
 let gameUiState = null;
 
 
@@ -180,16 +173,17 @@ main();
 function main() {
     peerConnection = new PeerConnection(receiveDataHandler);
 
-    // Display the relavant form (Invite / Join)
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.has("name") && urlParams.has("id")) {
-        joinForm.classList.remove("hidden");
-        invitedByTxt.innerHTML = `Invited by ${urlParams.get("name")}`;
-    } else {
-        inviteForm.classList.remove("hidden");
-    }
-
     document.addEventListener("DOMContentLoaded", () => {
+        
+        // Display the relavant form (Invite / Join)
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has("name") && urlParams.has("id")) {
+            joinForm.classList.remove("hidden");
+            invitedByTxt.innerHTML = `Invited by ${urlParams.get("name")}`;
+        } else {
+            inviteForm.classList.remove("hidden");
+        }
+
         // Handle Join button
         btnJoin.addEventListener("click", () => handleJoin(urlParams.get("name"), urlParams.get("id"), peerConnection));
     
@@ -206,14 +200,14 @@ function initGame(players, cells) {
 
     gameUiState = new GameUiState(players, cells);
     setIndicator(gameUiState.getCurrentPlayer().playerName);
-    setCellClickHandlers(appState, gameUiState, peerConnection);
+    setCellClickHandlers(gameUiState, peerConnection);
 }
 
-function setCellClickHandlers(appState, gameUiState, peerConnection) {
+function setCellClickHandlers(gameUiState, peerConnection) {
     gameUiState.cells.forEach(cell => {        
         cell.setClickHandler(clickedCell => {
 
-            if (appState.playerId !== gameUiState.currentPlayerId) {
+            if (peerConnection.playerId !== gameUiState.currentPlayerId) {
                 return;
             }
 
@@ -253,10 +247,9 @@ function setIndicator(playerName) {
     playerIndicator.innerHTML = playerName;
 }
 
-function refreshUpdatedState(gameUiState) {
-
+function refreshUpdatedState(playerId, gameUiState) {
     // Draw moves
-    if (appState.playerId === PlayerId.PLAYER_X) {
+    if (playerId === PlayerId.PLAYER_X) {
         for (const move of gameUiState.moves[PlayerId.PLAYER_O]) {
             gameUiState.cells[move].draw(gameUiState.getPlayerById(PlayerId.PLAYER_O));
         }
@@ -298,7 +291,7 @@ function checkGameOver(gameUiState) {
     }
     
     // Check draw
-    if (gameUiState.cells.length == gameUiState.moves[PlayerId.PLAYER_X].size + gameUiState.moves[PlayerId.PLAYER_O].size) {
+    if (gameUiState.cells.length === gameUiState.moves[PlayerId.PLAYER_X].size + gameUiState.moves[PlayerId.PLAYER_O].size) {
         gameUiState.isDraw = true;
     }
 }
@@ -328,7 +321,7 @@ function handleInvite(peerConnection) {
         alert("Enter player name");
         return;
     }
-    appState = new AppState(PlayerId.PLAYER_X);
+    peerConnection.playerId = PlayerId.PLAYER_X;
     players.push(new Player(PlayerId.PLAYER_X, playerName, "X"));
 
     peerConnection.getInviteLink(playerName).then(link => {
@@ -343,7 +336,7 @@ function handleJoin(playerNameX, id, peerConnection) {
         alert("Enter player name");
         return;
     }
-    appState = new AppState(PlayerId.PLAYER_O);
+    peerConnection.playerId = PlayerId.PLAYER_O;
 
     // Register both players at PLAYER_O peer
     players.push(new Player(PlayerId.PLAYER_X, playerNameX, "X"));

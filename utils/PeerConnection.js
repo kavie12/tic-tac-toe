@@ -4,6 +4,8 @@ class PeerConnection {
         this.conn = null;
         this.receiveDataHandler = receiveDataHandler;
 
+        this.playerId = null;
+
         this.peer.on("connection", conn => {
             this.conn = conn;
             this.receiveData();
@@ -29,7 +31,7 @@ class PeerConnection {
 
     receiveData() {
         this.conn.on("open", () => {
-            this.conn.on("data", data => this.receiveDataHandler(data));
+            this.conn.on("data", data => this.receiveDataHandler(this.playerId, data));
         });
     }
 
