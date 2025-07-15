@@ -1,8 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+
 body {
     background: linear-gradient(90deg, rgba(42, 153, 155, 1) 0%, rgba(92, 191, 158, 1) 53%, rgba(103, 207, 148, 1) 100%);
     height: 100vh;
     overflow-y: hidden;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: Roboto;
 }
 
 .container {
@@ -11,106 +13,58 @@ body {
     align-items: center;
 }
 
-.title-card {
-    margin-top: 24vh;
-    text-align: center;
+
+/* Player details */
+
+.players-details {
+    margin-top: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    column-gap: 80px;
 }
 
-.game-title {
-    color: aliceblue;
-    font-size: 60px;
+.player-indicator {
+    display: flex;
+    background-color: rgba(245, 245, 245, 0.8);
+    padding: 12px 24px;
+    border-radius: 32px;
+    box-shadow: rgba(66, 66, 66, 0.2) 8px 12px 16px -12px;
+}
+
+.player-indicator.active {
+    background-color: #e7c555;
+}
+
+.player-indicator .player-type {
     font-weight: bold;
-    margin: 0;
+    border-right: 1px solid rgba(41, 41, 41, 0.4);
+    padding-right: 12px;
 }
 
-.game-desc {
+.player-indicator .player-name {
+    padding-left: 12px;
+}
+
+
+/* Title section */
+
+.title-section {
+    margin-top: 20px;
     color: whitesmoke;
-}
-
-.invite-card {
-    margin-top: 40px;
     text-align: center;
 }
 
-.player-name {
-    padding: 8px;
-    border: none;
-    border-radius: 4px;
-    background-color: whitesmoke;
+.title-section h1 {
+    font-size: 48px;
+    margin-bottom: 12px;
 }
 
-.player-name:focus {
-    outline: none;
-}
 
-.invite-btn,
-.join-btn {
-    border: none;
-    padding: 8px;
-    border-radius: 4px;
-    cursor: pointer;
-    background-color: whitesmoke;
-}
-
-.invite-btn:hover,
-.join-btn:hover {
-    background-color: rgb(235, 235, 235);
-}
-
-.link-details {
-    margin-top: 44px;
-}
-
-.link {
-    padding: 8px;
-    border: none;
-    border-radius: 4px;
-    background: none;
-    color: #141414;
-    width: 520px;
-}
-
-.link:focus {
-    outline: none;
-}
-
-.copy-btn {
-    padding: 8px;
-    border-radius: 4px;
-    cursor: pointer;
-    background: none;
-    border: 1px #141414 solid;
-    color: #141414;
-}
-
-.copy-btn:hover {
-    background: #141414;
-    color: whitesmoke;
-}
-
-.invite-details {
-    margin-top: 44px;
-}
-
-.invite-details span {
-    color: whitesmoke;
-}
-
-.hidden {
-    display: none;
-}
-
-.player {
-    margin-top: 12px;
-    background-color: rgba(240, 248, 255, 0.9);
-    padding: 16px 28px;
-    border-radius: 28px;
-    backdrop-filter: blur(4px);
-    box-shadow: rgba(0, 0, 0, 0.4) 4px 8px 20px -8px;
-}
+/* Game grid */
 
 .game-grid {
-    margin-top: 20vh;
+    margin-top: 92px;
     display: grid;
     grid-template-columns: auto auto auto;
     gap: 8px;
@@ -127,17 +81,89 @@ body {
 
 .cell-symbol {
     font-size: 60px;
-    color: rgb(53, 53, 53);
 }
 
-.winning-cell-symbol {
-    font-size: 60px;
-    color: #e75e1e;
+
+/* Invite card */
+
+.invite-card,
+.join-card {
+    position: absolute;
+    bottom: 20px;
+    justify-content: center;
+    background-color: rgba(31, 30, 34, 0.8);
+    border-radius: 8px;
+    padding: 20px 28px;
+    display: flex;
+    column-gap: 12px;
+    animation-name: invite-and-join-card-animation;
+    animation-duration: .6s;
+    box-shadow: rgba(66, 66, 66, 0.8) 8px 12px 16px -12px;
 }
 
-.game-over-msg {
-    margin-top: 40vh;
+.invite-card .player-name,
+.join-card .player-name {
+    padding: 8px 12px;
+    border: 2px solid whitesmoke;
+    border-radius: 12px;
+    background: none;
     color: whitesmoke;
-    font-size: 40px;
-    font-weight: bold;
+}
+
+.invite-card .player-name::placeholder,
+.join-card .player-name::placeholder {
+    color: whitesmoke;
+    opacity: 1;
+}
+
+.invite-card .player-name:focus,
+.join-card .player-name:focus {
+    outline: none;
+}
+
+.invite-card .invite-btn,
+.join-card .join-btn {
+    padding: 8px 12px;
+    border-radius: 12px;
+    cursor: pointer;
+}
+
+@keyframes invite-and-join-card-animation {
+    0% {
+        transform: translateY(100px);
+    }
+
+    100% {
+        transform: translateY(0);
+    }
+}
+
+
+/* Game over section */
+.game-over-section {
+    margin-top: 80px;
+    display: flex;
+    flex-direction: column;
+    row-gap: 24px;
+    text-align: center;
+}
+
+.game-over-section span {
+    color: whitesmoke;
+    font-size: 28px;
+}
+
+.game-over-section button {
+    background-color: whitesmoke;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+
+/* Common */
+
+.hidden {
+    display: none;
 }

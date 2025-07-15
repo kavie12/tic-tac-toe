@@ -31,4 +31,11 @@ class Cell {
             this.element.removeEventListener("click", this.clickHandler);
         }
     }
+
+    reset() {
+        this.element.innerHTML = "";
+        this.isChecked = false;
+        this.playerId = null;
+        this.element.addEventListener("click", this.clickHandler);
+    }
 };

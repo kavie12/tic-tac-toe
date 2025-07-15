@@ -9,29 +9,41 @@ class PeerConnection {
         this.peer.on("connection", conn => {
             this.conn = conn;
             this.receiveData();
+            receiveDataHandler({
+                type: PeerSignal.JOIN_O,
+                data: {
+                    playerName: this.conn.metadata.playerName
+                }
+            });
         });
     }
 
-    getInviteLink(playerName) {
+    getInviteLink() {
         return new Promise(resolve => {
             if (this.peer.id) {
-                resolve(`${window.location.origin}?name=${playerName}&id=${this.peer.id}`);
+                resolve(`${BASE_URL}#${this.peer.id}`);
             } else {
                 this.peer.on("open", id => {
-                    resolve(`${window.location.origin}?name=${playerName}&id=${id}`);
+                    resolve(`${BASE_URL}#${id}`);
                 });
             }
         });
     }
 
-    connect(id) {
-        this.conn = this.peer.connect(id);
+    connect(id, playerName) {
+        this.conn = this.peer.connect(id, {
+            metadata: {
+                playerName: playerName
+            }
+        });
         this.receiveData();
     }
 
     receiveData() {
         this.conn.on("open", () => {
-            this.conn.on("data", data => this.receiveDataHandler(this.playerId, data));
+            this.conn.on("data", data => {
+                this.receiveDataHandler(data);
+            });
         });
     }
 
